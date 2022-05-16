@@ -748,3 +748,134 @@ plot_comparisson <- function(year=2014, year2="gecco", sample_size=200,dim=2, sc
   save_prefix_gecco <- paste(name2,scale_x_factor, scale_y_factor, shift_x_factor, shift_y_factor,normalize_Y, type, sep="_")
   do_visualization(name1, name2, save_prefix, step, nfun, as.numeric(dim), scale_x_factor, scale_y_factor, shift_x_factor, shift_y_factor, normalize_Y, gecco_cec=gecco_cec, saved_wilcoxon=saved_wilcoxon, save_prefix_gecco = save_prefix_gecco, nfun1=nfun1, nfun2=nfun2, perplexity = perplexity)
 }
+
+
+
+
+#' calculate_features_multiple
+#'
+#'
+#' Calculate the ELA features using samples
+#' @param X_all X samples
+#' @param Y_all Y samples
+#' @param step  How many samples per problem
+#' @param nfun How many problems
+#' @param all_instances
+#' @param num_instances
+#' @param exclude Which specific functions to exclude from calculation. Used for CEC 2017, where function 2 was excluded from the benchmark
+#'
+#' @return
+#' @export
+#'
+#' @examples
+calculate_features_multiple <- function(X_all, Y_all, step, nfun, all_instances, num_instances=1, exclude =c())  {
+  all_features<- c()
+  error_indices<-c()
+  current_index<-0
+  for (func_num in 1:nfun){
+
+    tryCatch({
+      current_index <- current_index + 1
+
+      #for cec
+      if (func_num %in% exclude) {next()}
+      start_index <- (current_index - 1) * step + 1
+      end_index <- current_index * step
+      results <- Y_all[start_index:end_index]
+      results <- as.matrix(results)
+      samples <- X_all[start_index:end_index, ]
+      samples <- as.matrix(samples)
+
+
+
+      set.seed(4839274)
+      feat.object <- createFeatureObject(X = samples, y = results, lower=min(samples), upper=max(samples))
+
+
+      print("cm_angle")
+      features = calculateFeatureSet(feat.object, "cm_angle")
+
+      print("cm_grad")
+      fe = calculateFeatureSet(feat.object, "cm_grad")
+      features <- c(features,fe)
+
+
+      fe = calculateFeatureSet(feat.object, "ela_distr")
+      features <- c(features,fe)
+
+      fe = calculateFeatureSet(feat.object, "ela_meta")
+      features <- c(features,fe)
+
+      fe = calculateFeatureSet(feat.object, "ic")
+      features <- c(features,fe)
+
+      fe = calculateFeatureSet(feat.object, "basic")
+      features <- c(features,fe)
+
+      fe = calculateFeatureSet(feat.object, "disp")
+      features <- c(features,fe)
+
+      fe = calculateFeatureSet(feat.object, "limo")
+      features <- c(features,fe)
+
+      fe = calculateFeatureSet(feat.object, "nbc")
+      features <- c(features,fe)
+
+      fe = calculateFeatureSet(feat.object, "pca")
+      features <- c(features,fe)
+
+      all_features <- rbind(all_features, t(as.matrix(features)))
+    }, error=function(e){
+      print("Error");
+      print(e);
+      error_indices<<-c(error_indices, func_num)
+      all_features <<- rbind(all_features,matrix(NA, ncol=ncol(all_features)))
+    })
+
+
+  }
+  ret<-c()
+  ret$features <- all_features
+  ret$errors <- error_indices
+  return(ret)
+}
+
+#' calculate_cec_2015
+#'
+#' An example of how landscape features were calculated, for the CEC 2015 problem set
+#' @param appended to every filename when reading samples
+#' @param out filename to save the features to
+#' @param normalize_y should y be normalized before calculating features
+#' @param n how many samples per problem
+#' @param ex which function to exclude when calculating features
+#'
+#' @return
+#' @export
+#'
+#' @examples
+calculate_cec_2015 <- function(name1, out, normalize_y=TRUE, n=2000, ex=c()){
+  print(paste("C:\\R_Code\\Landscape Analysis\\rezultati\\samples\\all_samples_mat_200_2014_17", name1, ".mat", sep=""))
+
+  cec_x_3 <- readMat(paste("C:\\R_Code\\Landscape Analysis\\rezultati\\samples\\all_samples_mat_200_2015_17", name1, ".mat",sep=""))
+  cec_x_3 <- cec_x_3$all.samples.mat.200
+
+  cec_x <- cec_x_3
+
+  #cec_y <- readRDS("C:\\R_Code\\Landscape Analysis\\CEC\\Rezultati\\all_1k_y.rds")
+
+  cec_y_3 <-  readMat(paste("C:\\R_Code\\Landscape Analysis\\rezultati\\samples\\all_results_mat_200_2015_17", name1, ".mat",sep=""))
+  cec_y_3 <- cec_y_3$all.results.mat.200
+
+  cec_y <- cec_y_3
+
+  if(normalize_y){
+    cec_y<-normalize_all_Y(cec_y, n, 15)
+  }
+  #exclude=c(3,7,8,9,12,13,16,20)
+
+  features_cec_fixed_x<- calculate_features_multiple(cec_x, cec_y, n, nfun=15, all_instances=1, exclude=ex)
+  saveRDS(features_cec_fixed_x, out)
+
+
+}
+
