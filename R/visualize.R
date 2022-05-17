@@ -11,7 +11,7 @@ library(tidyverse)
 library(stringr)
 
 
-setwd("DATA_DIR") #Set to directory containing samples
+#setwd("DATA_DIR") #Uncomment and set to directory containing samples if you want shorter file paths
 
 
 #' generate_data_2
@@ -861,8 +861,6 @@ calculate_cec_2015 <- function(name1, out, normalize_y=TRUE, n=2000, ex=c()){
 
   cec_x <- cec_x_3
 
-  #cec_y <- readRDS("C:\\R_Code\\Landscape Analysis\\CEC\\Rezultati\\all_1k_y.rds")
-
   cec_y_3 <-  readMat(paste("C:\\R_Code\\Landscape Analysis\\rezultati\\samples\\all_results_mat_200_2015_17", name1, ".mat",sep=""))
   cec_y_3 <- cec_y_3$all.results.mat.200
 
@@ -871,7 +869,7 @@ calculate_cec_2015 <- function(name1, out, normalize_y=TRUE, n=2000, ex=c()){
   if(normalize_y){
     cec_y<-normalize_all_Y(cec_y, n, 15)
   }
-  #exclude=c(3,7,8,9,12,13,16,20)
+
 
   features_cec_fixed_x<- calculate_features_multiple(cec_x, cec_y, n, nfun=15, all_instances=1, exclude=ex)
   saveRDS(features_cec_fixed_x, out)

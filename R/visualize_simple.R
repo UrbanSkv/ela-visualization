@@ -1,14 +1,7 @@
-library(flacco)
-library(Rcpp)
 library(mlr)
 library(tsne)
-library(R.matlab)
 library(caret)
-library(purrr)
-library(RColorBrewer)
-library(VennDiagram)
-library(tidyverse)
-library(stringr)
+
 
 #A Simpler example of visuzalization
 #example() visualizes two sets of landscape functions, saved in rds files
@@ -193,8 +186,8 @@ process_features<-function(data, saved_wilcoxon=FALSE, wilcoxon_filename = "C:\\
 
 
 
-
-  data_filtered <- na.omit(data_filtered)
+  data_filtered <- na.omit(data_filtered) #drop nas
+  data_filtered <- data_filtered[,apply(data_filtered, 2, var, na.rm=TRUE) != 0] #remove constant columns, if there are any
   df2 = cor(data_filtered)
 
   hc = findCorrelation(df2, cutoff=0.95)
@@ -260,7 +253,7 @@ draw_data <- function(data, perplexity=5, title="", gecco_cec=FALSE, nfun1=0, nf
 
   #uncomment these 3 lines if you want to save the figure rather than plot it on screen
   #png(file="filename", pointsize=10, width=2000, height=2000, res=300)
-  tsne_res = tsne(data, epoch_callback = ecb, perplexity=perplexity, epoch=10000, max_iter=10000)
+  tsne_res = tsne(data, epoch_callback = ecb, perplexity=perplexity, epoch=1000, max_iter=1000)
   #title("Plot Title")
   #dev.off()
 }
@@ -307,6 +300,19 @@ plot_visualization <- function(features1, features2){
 
 }
 
+
+#' filter_features
+#' remove coulmns containing the specified features from df
+#' @param df the dataframe to remove columns from
+#' @param features the vector of column names to remove
+#'
+#' @return
+#' @export
+#'
+#' @examples
+filter_features<-function(df, features) {
+  return(df[ , -which(names(df) %in% features)])
+}
 
 example <- function(){
   setwd("%DATA_DIRECTORY%")
