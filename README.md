@@ -10,3 +10,5 @@ The folder /R contains three R source files used for visualizations
 
 The folder /matlab contains an example code for samplint problems from the CEC 2015 problem set. In order to run this function, teh CEC 2015 function definitions must first be extracted to the same folder. The definitions can be downloaded from https://github.com/P-N-Suganthan/CEC2015-Learning-Based
 
+
+The folder /data contains two example RDS files that contain features corresponding to the 2014 and the 2015 CEC problem sets.
